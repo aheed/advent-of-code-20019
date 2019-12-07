@@ -44,7 +44,6 @@ def get_parameters(mem, pos, opmodes):
             param = mem[immediate_val]
         else: # immediate_mode
             param = immediate_val
-            assert False #TEMP
         params.append(param)
         pos += 1
     return params
@@ -92,10 +91,7 @@ def process(mem, pos):
     assert False
     """
 
-def execute(mem, noun, verb):
-
-    
-
+def execute(mem):
     pc = 0
     while True:
         #print('pc:{} mem[pc]:{}'.format(pc, mem[pc]))
@@ -110,13 +106,14 @@ def find_input():
             mem = [val for val in original_mem] #deep copy
             mem[1] = noun
             mem[2] = verb
-            execute(mem, noun, verb)
+            execute(mem)
             if(mem[0] == 19690720):
                 return 100 * noun + verb
     assert False
 
-res = find_input()
+#res = find_input()
+#print(res)
 
-print(res)
+execute(mem)
 
 
