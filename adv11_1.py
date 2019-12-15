@@ -114,7 +114,10 @@ def process(mem, pos, inputs, outputs, relbase):
     if op == 3:
         #respos = mem[pos + 1]
         respos = get_addr_from_param(params[0])
-        set_autoexpand(mem, respos, inputs.pop(0))
+        #set_autoexpand(mem, respos, inputs.pop(0))
+        inputval = inputs.get_next()
+        print('input: {}'.format(inputval))
+        set_autoexpand(mem, respos, inputval)
         #mem[respos] = inputs.pop(0)
         #print("got signal {}".format(mem[respos]))
     if op == 4:
@@ -176,33 +179,148 @@ def execute_until_output(mem, pc, inputs, outputs, relbase):
 
 
 def signals_to_intcomputer(cmp, signals):
-    cmp['inputs'].extend(signals)
+    #cmp['inputs'].extend(signals)
+    cmp['inputs'].add_inputs(signals)
 
 
 
 ################################################################
 ################################################################
 
-intcomputer = {'prog': mem.copy(), 'inputs': [], 'outputs': [], 'next_amp': None, 'pc': 0, 'relbase': 0}
+class QueueInputSource():
+    def __init__(self, inputs):
+        self.inputs = []
+        self.add_inputs(inputs)
 
-signals_to_intcomputer(intcomputer, [1])
+    def add_inputs(self, inputs):
+        self.inputs.extend(inputs)
+    
+    def get_next(self):
+        return self.inputs.pop(0)
+
+class ConstInputSource():
+    def __init__(self, val):
+        self.val = val
+    
+    def get_next(self):
+        return self.val
+
+
+"""
+intcomputer = {'prog': mem.copy(), 'inputs': QueueInputSource([]), 'outputs': [], 'next_amp': None, 'pc': 0, 'relbase': 0}
+
+signals_to_intcomputer(intcomputer, [2])
 
 (intcomputer['pc'], intcomputer['relbase']) = execute_until_output(intcomputer['prog'], intcomputer['pc'], intcomputer['inputs'], intcomputer['outputs'], intcomputer['relbase'])
 # get last output
 output = intcomputer['outputs'][len(intcomputer['outputs']) - 1]
 print(output)
 
+"""
 
 
+
+# constants
+up=0
+left=1
+down=2
+right=3
+ccw = 0
+cw = 1
+black = 0
+white = 1
+
+
+    
+class PanelGrid():
+    def __init__(self):
+        self.paneldict = {}
+        self.robot_pos = (0, 0)
+        self.orientation = up
+
+    def rotate_robot(self, rot_direction):
+        rotation = 1 if rot_direction == ccw else -1
+        self.orientation += rotation
+        if self.orientation < up:
+            self.orientation = right
+        if self.orientation > right:
+            self.orientation = up
+
+    def set_color_at_current_panel(self, color):
+        print("painting {} {}".format(str(self.robot_pos), color))
+        self.paneldict[str(self.robot_pos)] = color
+
+    def get_color_at_current_panel(self):
+        if str(self.robot_pos) in self.paneldict:
+            return self.paneldict[str(self.robot_pos)]
+        return black
+
+    def move_robot(self, dx, dy):
+        self.robot_pos = (self.robot_pos[0] + dx, self.robot_pos[1] + dy)
+
+    def move_robot_forward(self):
+        dx = 0
+        dy = 0
+        if self.orientation == up:
+            dy = 1
+        elif self.orientation == left:
+            dx = -1
+        elif self.orientation == down:
+            dy = -1
+        elif self.orientation == right:
+            dx = 1
+        self.move_robot(dx, dy)
+
+    def paint_panel(self, color):
+        self.set_color_at_current_panel(color)
+    
+    def make_move(self, rot_direction):
+        self.rotate_robot(rot_direction)
+        self.move_robot_forward()
+    
+    def get_nof_painted_panels(self):
+        return len(self.paneldict)
+
+thegrid = PanelGrid()
+
+
+intcomputer = {'prog': mem.copy(), 'outputs': [], 'next_amp': None, 'pc': 0, 'relbase': 0}
+outputs_buffer = []
+cnt = 0
+
+while intcomputer['pc'] >= 0:
+    intcomputer['inputs'] = ConstInputSource(thegrid.get_color_at_current_panel())
+    (intcomputer['pc'], intcomputer['relbase']) = execute_until_output(intcomputer['prog'], intcomputer['pc'], intcomputer['inputs'], intcomputer['outputs'], intcomputer['relbase'])
+    if len(intcomputer['outputs']) > 0:
+        val = intcomputer['outputs'].pop()
+        if cnt % 2 == 0:
+            thegrid.paint_panel(val)
+        else:
+            thegrid.make_move(val)
+        cnt += 1
+
+
+    """
+    outputs_buffer.extend(intcomputer['outputs'])
+    del intcomputer['outputs'][:]
+    if len(outputs_buffer) == 2:
+        new_color = outputs_buffer.pop()
+        turn_direction = outputs_buffer.pop()
+        thegrid.paint_panel(new_color, turn_direction)
+    """
 
 """
-To do:
-Relative mode*
-Relative mode outputs*
-relative base member*
-relative base offset instruction*
-infinite memory*
-large ints*
-refactor
-excute according to spec*
+thegrid.paint_panel(1, 0)
+thegrid.paint_panel(0, 0)
+thegrid.paint_panel(1, 0)
+thegrid.paint_panel(1, 0)
+thegrid.paint_panel(0, 1)
+thegrid.paint_panel(1, 0)
+thegrid.paint_panel(1, 0)
 """
+
+
+print(thegrid.get_nof_painted_panels())
+
+
+

@@ -185,7 +185,7 @@ def signals_to_intcomputer(cmp, signals):
 
 intcomputer = {'prog': mem.copy(), 'inputs': [], 'outputs': [], 'next_amp': None, 'pc': 0, 'relbase': 0}
 
-signals_to_intcomputer(intcomputer, [1])
+signals_to_intcomputer(intcomputer, [2])
 
 (intcomputer['pc'], intcomputer['relbase']) = execute_until_output(intcomputer['prog'], intcomputer['pc'], intcomputer['inputs'], intcomputer['outputs'], intcomputer['relbase'])
 # get last output
