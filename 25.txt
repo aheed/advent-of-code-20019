@@ -1,0 +1,31 @@
+west
+take fixed point
+north
+take sand
+south
+east
+east
+take asterisk
+north
+north
+take hypercube
+north
+take coin
+north
+take easter egg
+south
+south
+south
+west
+north
+take spool of cat6
+north
+take shell
+west
+north
+inv
+drop easter egg
+drop asterisk
+drop hypercube
+drop shell
+north
